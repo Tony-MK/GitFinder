@@ -62,7 +62,7 @@ async function main(){
 
         const data = res.data.reduce(
             (comments, comment) => {
-                if (comment.state !== 'open' || comment.html_url.includes('pull') || comment.title.includes('HOLD')){
+                if (comment.state !== 'open' || comment.html_url.includes('pull') || comment.title.split("$")[0].toLower().includes('hold')){
                     return comments;
                 }
                 comment.labels = comment.labels.map(l => l.name)
