@@ -79,8 +79,7 @@ async function main(){
 
         for(let i = 0; i < data.length; i++){
             const comment = data[i];
-            console.info(i, comment.node_id, comment.id, comment.title, comment.labels, comment.html_url);
-            console.info(comment.body);
+            console.info(i, comment.id, comment.title, comment.labels, comment.html_url);
         }
     }
 }
