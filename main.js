@@ -46,7 +46,7 @@ async function main(){
     let res = {data : [{}]};
     let page = 0;
 
-    while(res.data.length){
+    while(res.data.length || page <= 8){
         console.info(`Page ${page++}`);
         res = await octokit.request(`GET /repos/${OWNER}/${NAME}/issues`, {
             owner: OWNER,
@@ -61,12 +61,12 @@ async function main(){
         });
 
         const data = res.data.reduce(
-            (comments, issue) => {
+            (comments, comment) => {
                 if (comment.state !== 'open' || comment.html_url.includes('pull') || comment.title.includes('HOLD')){
                     return comments;
                 }
-                issue.labels = issue.labels.map(l => l.name)
-                if (!comment.labels.includes('External') || !comment.labels.includes('Help Wanted') || comment.labels.includes('Awaiting Payment') || issue.labels.includes('Reviewing')){
+                comment.labels = comment.labels.map(l => l.name)
+                if (!comment.labels.includes('External') || !comment.labels.includes('Help Wanted') || comment.labels.includes('Awaiting Payment') || comment.labels.includes('Reviewing')){
                     return comments;
                 }
                 return [
