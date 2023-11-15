@@ -41,19 +41,14 @@ const { Octokit } = require("@octokit/core");
 const octokit = new Octokit({});
 const OWNER =  "Expensify";
 const NAME  =  "App";
-const QUERIES = {
-    ISSUES : {
-        
-    }
-}
 
 
 async function get(query){
     let res = {data : [{}]};
     let page = 0;
 
-    while(res.data.length || page <= 8){
-        console.info(`Page ${page++}`);
+    while(res.data.length && page++ < 1){
+        console.info(`\n\n\nGetting Page ${page}`);
         res = await octokit.request(`GET /repos/${OWNER}/${NAME}/issues`, {
             ...query,
             page: page,
@@ -79,13 +74,16 @@ async function get(query){
         );
         
         let i = 0;
-        while(i < data.length) display(data[i], i++);
+        while(i < data.length) {
+            const issueStr = toString(data[i]);
+            console.log(++i, issueStr);
+        }
     }
 }
 
-function display(issue, i = undefined){
-    console.info(`${i ? i.toString().concat(" ") : ""}${issue.created_at}`, issue.labels.reduce((s, c) => `${s ? s.concat(", ") : ""}${c}`, ""));
-    console.info(issue.issues, issue.title, issue.html_url);
+function toString(issue){
+    issue.labels.toString = () => issue.labels.reduce((s, c) => `${s ? s.concat(", ") : ""}${c}`, "") 
+    return `${issue.comments} ${issue.created_at} ${issue.labels} ${issue.html_url} ${issue.title}\n`
 }
 
 async function update(){
@@ -94,7 +92,7 @@ async function update(){
         owner: OWNER,
         repo: NAME,
         state: 'open',
-        sort: 'issues',
+        sort: 'comments',
         direction: 'asc',
         labels: 'Help Wanted',
         per_page: 100,
