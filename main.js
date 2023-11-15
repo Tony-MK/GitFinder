@@ -1,12 +1,12 @@
 /*
 
-Comment Keys
+issue Keys
 
 [
   'url',
   'repository_url',
   'labels_url',
-  'comments_url',
+  'issues_url',
   'events_url',
   'html_url',
   'id',
@@ -20,7 +20,7 @@ Comment Keys
   'assignee',
   'assignees',
   'milestone',
-  'comments',
+  'issues',
   'created_at',
   'updated_at',
   'closed_at',
@@ -41,47 +41,67 @@ const { Octokit } = require("@octokit/core");
 const octokit = new Octokit({});
 const OWNER =  "Expensify";
 const NAME  =  "App";
+const QUERIES = {
+    ISSUES : {
+        
+    }
+}
 
-async function main(){
+
+async function get(query){
     let res = {data : [{}]};
     let page = 0;
 
     while(res.data.length || page <= 8){
         console.info(`Page ${page++}`);
         res = await octokit.request(`GET /repos/${OWNER}/${NAME}/issues`, {
-            owner: OWNER,
-            repo: NAME,
-            sort: 'updated',
-            direction: 'desc',
-            per_page: 100,
+            ...query,
             page: page,
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         });
-
         const data = res.data.reduce(
-            (comments, comment) => {
-                if (comment.state !== 'open' || comment.html_url.includes('pull') || comment.title.split("$")[0].toLower().includes('hold')){
-                    return comments;
+            (issues, issue) => {
+                if (issue.state !== 'open' || issue.html_url.includes('pull') || issue.title.split("$")[0].toLowerCase().includes('hold')){
+                    return issues;
                 }
-                comment.labels = comment.labels.map(l => l.name)
-                if (!comment.labels.includes('External') || !comment.labels.includes('Help Wanted') || comment.labels.includes('Awaiting Payment') || comment.labels.includes('Reviewing')){
-                    return comments;
+                issue.labels = issue.labels.map(l => l.name)
+                if (!issue.labels.includes('External') || !issue.labels.includes('Help Wanted') || issue.labels.includes('Awaiting Payment') || issue.labels.includes('Reviewing')){
+                    return issues;
                 }
                 return [
-                    ...comments,
-                    comment,
+                    ...issues,
+                    issue,
                 ]
             },
             [],
         );
-
-        for(let i = 0; i < data.length; i++){
-            const comment = data[i];
-            console.info(i, comment.id, comment.title, comment.labels, comment.html_url);
-        }
+        
+        let i = 0;
+        while(i < data.length) display(data[i], i++);
     }
 }
 
-main();
+function display(issue, i = undefined){
+    console.info(`${i ? i.toString().concat(" ") : ""}${issue.created_at}`, issue.labels.reduce((s, c) => `${s ? s.concat(", ") : ""}${c}`, ""));
+    console.info(issue.issues, issue.title, issue.html_url);
+}
+
+async function update(){
+
+    const query = {
+        owner: OWNER,
+        repo: NAME,
+        state: 'open',
+        sort: 'issues',
+        direction: 'asc',
+        labels: 'Help Wanted',
+        per_page: 100,
+    }
+
+    await get(query)
+
+}
+
+update();
